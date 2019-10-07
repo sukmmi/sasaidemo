@@ -1,0 +1,16 @@
+node_modules
+node_modules/
+public/temp/
+sasesp/backup
+sasesp/demo0.html
+sasesp/demo00.html
+sasesp/demo01.html
+sasesp/README_local.md
+sasesp/espoutput.json
+README_under_constrution.md
+nodejs
+nodejs/
+build
+build/
+conf
+conf/

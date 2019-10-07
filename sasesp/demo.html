@@ -1,0 +1,254 @@
+<html>
+<head>
+<title>Image Class</title>
+<style>
+#container {
+	width: 224px;
+	height: 224px;
+	position: relative;
+}
+#container2 {
+	height: 224px;
+	position: relative;
+}
+#sas {
+  border-radius: 50%;
+	width: 100px;
+	height: 100px;
+	position: absolute;
+}
+#sasBar {
+    width: 0%;
+    height: 30px;
+    background-color: #4CAF50;
+//    text-align: center; /* To center it horizontally (if you want) */
+    text-align: right; // runner image
+    line-height: 30px; /* To center it vertically */
+    color: white;
+}
+
+.table1{
+border-collapse: collapse;
+}
+.table1,.th1,.td1 {
+border: 2.5px solid lightblue;
+
+}
+.th1,.td1{
+  text-align: left;
+  border-bottom: 1px solid lightblue;
+  color: white;
+}
+
+table, th, td {
+  border: 0px solid black;
+}
+
+</style>
+
+<head>
+<meta charset="utf-8"/>
+<!-- The rest of your page's header here -->
+
+<script>
+var windowObjectReference;
+var strWindowFeatures = "menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes";
+var hit_img = 0;
+var hit_score=0;
+var canvasimg;
+var ctximg;
+var lable;
+var url;
+var debug = 1;
+//var wsaddr="sandpit2.sasanzdemo.com:5558";
+var wsaddr="wss://ai.sasanzdemo.com:5558";
+var sock_image = new WebSocket(wsaddr+'/SASESP/subscribers/ImageClassification_v2/cq1/w_imageData/?format=json&mode=streaming&pagesize=50&schema=true');
+var sock_score = new WebSocket(wsaddr+'/SASESP/subscribers/ImageClassification_v2/cq1/inferenceEndpoint/?format=json&mode=streaming&pagesize=50&schema=true');
+//var sock_image = new WebSocket('ws://sandpit2.sasanzdemo.com:5558/SASESP/subscribers/ImageClassification_v2/cq1/w_imageData/?format=json&mode=streaming&pagesize=50&schema=true');
+//var sock_score = new WebSocket('ws://sandpit2.sasanzdemo.com:5558/SASESP/subscribers/ImageClassification_v2/cq1/inferenceEndpoint/?format=json&mode=streaming&pagesize=50&schema=true');
+
+
+function openRequestedPopup(url) {
+  windowObjectReference = window.open(url, "URL_WindowName", strWindowFeatures);
+}
+
+function initVariables(){
+	canvasimg = document.getElementById("imagecap");
+	ctximg = imagecap.getContext("2d");
+}
+
+
+function updateTable(rows) {
+   //var rows = {'name':'Kasun', 'address':'columbo','age': '29'};
+   //console.log(rows);
+   count=Object.keys(rows).length;
+   //console.log(count);
+   row_count=0
+   var table = document.getElementById('table1').getElementsByTagName('tbody')[0];
+
+    console.log(table.hasChildNodes());
+    while (table.hasChildNodes()) {
+     table.removeChild(table.lastChild);
+     console.log(table);
+    }
+
+   //console.log(table);
+   for (var key in rows) {
+     //console.log(key);
+     var row = table.insertRow(-1);
+     var td = document.createElement('td');
+
+     //first column
+     td = row.insertCell(-1);
+     td.className='td1';
+     let keyText = document.createTextNode(key);
+     td.appendChild(keyText);
+
+     //second column
+     td = row.insertCell(-1);
+     td.className='td1';
+     let valueText = document.createTextNode(rows[key]);
+     td.appendChild(valueText);
+
+     row_count++;
+   }
+}
+
+
+sock_score.onmessage = function (event) {
+
+	if( hit_score == 0){}
+	else if( hit_score == 1){
+		console.log("Score hit_img===1");
+	}else{
+		var data = JSON.parse(event.data);
+		if( data.events && data.events.length > 0){
+			for(i=0; i<data.events.length; i++){
+				console.log("score event: ",data.events[i].event);
+				updateTable(data.events[i].event);
+				var row=0;
+				for (var key in data.events[i].event) {
+					 if (data.events[i].event.hasOwnProperty(key)) {
+							value=data.events[i].event[key]
+							if( key == 'I__label_'){
+									label=value;
+							} else if ( key == 'URL'){
+									url=value;
+									var div = document.getElementById("sasBar");
+									while (div.hasChildNodes()) {
+									 div.removeChild(div.lastChild);
+									}
+									var textnode = document.createTextNode(url);
+									div.appendChild(textnode);
+									//openInNewTab(url);
+									openRequestedPopup(url);
+							}else{
+
+							}
+					 }
+					 row++;
+				}
+			}
+		}
+
+	}
+	hit_score++;
+}
+
+sock_image.onmessage = function (event) {
+	if( hit_img == 0){}
+	else if( hit_img == 1){
+		initVariables();
+		//console.log("Image on message",event)
+	}
+	else{
+	//else if( hit > 1 && hit < 10){
+		var data = JSON.parse(event.data);
+		if( data.events && data.events.length > 0){
+			ctximg.clearRect( 0, 0, 224, 224);
+			for(i=0; i<data.events.length; i++){
+				if( i == 0 && debug == 1){
+					var imageBufferBase64 = data.events[0].event._image_._image_;
+					var image = new Image();
+					image.onload = function(){
+						ctximg.drawImage( image, 0, 0, 224, 224);
+					}
+					image.src = "data:image/jpg;base64, "+imageBufferBase64;
+					console.log("Image -- > ",image.src);
+				}
+			 }
+		}
+	}
+	hit_img++;
+}
+
+
+</script>
+
+</head>
+
+<body bgcolor="#04304b">
+
+
+
+<br/>
+<br/>
+<table align='center'  width='50%'>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td width="30px">
+		<div id='container' style="border: solid lightblue">
+		    <canvas id="imagecap" style="z-index: 1; position:absolute; left:0px; top:0px;" height="224px" width="224px"></canvas>
+		</div>
+	</td>
+  <td style="vertical-align: top;" colspan="2">
+      <div id='container2' >
+          <table id="table1" class="table1"  align='center' width='100%'>
+            <thead>
+              <tr>
+                <th class="th1">Label</th>
+                <th class="th1">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+      </div>
+	</td>
+</tr>
+<tr>
+	<td></td>
+	<td colspan="3">
+	<font color="white"><b>URL:</b></font></br>
+      <div width="100%" style="border: solid lightblue">
+	    <div id="sasBar">www.sas.com</div>
+      </div>
+	</td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+</table>
+
+<!--
+<div id='container' style="position:relative; width:416px; height:416px">
+			<canvas id="layerbg" style="z-index: 1; position:absolute; left:0px; top:0px;" height="640px" width="512px"></canvas>
+			<canvas id="layerfg" style="z-index: 2; position:absolute; left:0px; top:0px;" height="640px" width="512px"></canvas>
+</div>-->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+
+	<p id="demo"></p>
+
+</body>
+<script>
+  //window.onload = repeat();
+</script>
+</html>

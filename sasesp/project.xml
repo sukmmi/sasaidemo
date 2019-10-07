@@ -1,0 +1,201 @@
+<project name="ImageClassification1" threads="1" pubsub="auto" heartbeat-interval="1">
+  <metadata>
+    <meta id="studioUploadedBy">mmishra</meta>
+    <meta id="studioUploaded">1549612242526</meta>
+    <meta id="studioModifiedBy">mmishra</meta>
+    <meta id="studioModified">1550123802532</meta>
+    <meta id="layout">{"cq1":{"PARSER":{"x":-230,"y":-10},"SCORE_JSON_CONSTRUCTOR":{"x":null,"y":null},"ScoreOutput":{"x":-310,"y":50},"inferenceEndpoint":{"x":30,"y":175},"w_ReadModels":{"x":-75,"y":-315},"w_ScoreInputData":{"x":-310,"y":-65},"w_ScoreJson":{"x":0,"y":-170},"w_calculate":{"x":-310,"y":-315},"w_imageData":{"x":-310,"y":-440},"w_loadModels":{"x":-75,"y":-440},"w_loadURLMappings":{"x":185,"y":-310},"w_loadurlmappingdata":{"x":-300,"y":-70}}}</meta>
+  </metadata>
+  <contqueries>
+    <contquery name="cq1">
+      <windows>
+        <window-source index="pi_EMPTY" insert-only="true" pubsub="true" name="w_imageData">
+          <schema>
+            <fields>
+              <field name="id" type="string" key="true"/>
+              <field name="_image_" type="blob"/>
+            </fields>
+          </schema>
+        </window-source>
+        <window-calculate algorithm="ImageProcessing" pubsub="true" name="w_calculate">
+          <schema>
+            <fields>
+              <field name="id" type="string" key="true"/>
+              <field name="resized" type="blob"/>
+            </fields>
+          </schema>
+          <parameters>
+            <properties>
+              <property name="function"><![CDATA[resize]]></property>
+              <property name="preFlip"><![CDATA[-1000]]></property>
+              <property name="x"><![CDATA[0]]></property>
+              <property name="y"><![CDATA[0]]></property>
+              <property name="width"><![CDATA[224]]></property>
+              <property name="height"><![CDATA[224]]></property>
+              <property name="outputWidth"><![CDATA[0]]></property>
+              <property name="outputHeight"><![CDATA[0]]></property>
+              <property name="alpha"><![CDATA[0]]></property>
+              <property name="beta"><![CDATA[0]]></property>
+              <property name="delta"><![CDATA[0]]></property>
+              <property name="theta"><![CDATA[0]]></property>
+              <property name="value"><![CDATA[0]]></property>
+              <property name="minValue"><![CDATA[0]]></property>
+              <property name="maxValue"><![CDATA[0]]></property>
+              <property name="type"><![CDATA[0]]></property>
+              <property name="flag1"><![CDATA[0]]></property>
+              <property name="flag2"><![CDATA[0]]></property>
+              <property name="flag3"><![CDATA[0]]></property>
+              <property name="flag4"><![CDATA[0]]></property>
+              <property name="flag5"><![CDATA[0]]></property>
+            </properties>
+          </parameters>
+          <input-map>
+            <properties>
+              <property name="imageInput"><![CDATA[_image_]]></property>
+            </properties>
+          </input-map>
+          <output-map>
+            <properties>
+              <property name="imageOutput"><![CDATA[resized]]></property>
+            </properties>
+          </output-map>
+        </window-calculate>
+        <window-score name="w_ScoreInputData" pubsub="true">
+          <schema>
+            <fields>
+              <field name="P__label_Animal" type="double"/>
+              <field name="P__label_CallCentre" type="double"/>
+              <field name="P__label_EdgeDevice" type="double"/>
+              <field name="P__label_Forms" type="double"/>
+              <field name="P__label_Muse" type="double"/>
+              <field name="P__label_SciSports" type="double"/>
+              <field name="I__label_" type="string"/>
+              <field name="_WARN_" type="string"/>
+              <field name="id" type="string" key="true"/>
+            </fields>
+          </schema>
+          <models>
+            <offline model-type="astore">
+              <input-map>
+                <properties>
+                  <property name="_image_"><![CDATA[resized]]></property>
+                </properties>
+              </input-map>
+              <output-map>
+                <properties>
+                  <property name="P__label_CallCentre"><![CDATA[P__label_CallCentre]]></property>
+                  <property name="P__label_EdgeDevice"><![CDATA[P__label_EdgeDevice]]></property>
+                  <property name="P__label_Forms"><![CDATA[P__label_Forms]]></property>
+                  <property name="P__label_Muse"><![CDATA[P__label_Muse]]></property>
+                  <property name="P__label_SciSports"><![CDATA[P__label_SciSports]]></property>
+                  <property name="I__label_"><![CDATA[I__label_]]></property>
+                  <property name="P__label_Animal"><![CDATA[P__label_Animal]]></property>
+                </properties>
+              </output-map>
+            </offline>
+          </models>
+        </window-score>
+        <window-model-reader name="w_ReadModels" pubsub="true" model-type="astore">
+          <connectors>
+            <connector class="fs" name="write_ReadModels_connector">
+              <properties>
+                <property name="type"><![CDATA[sub]]></property>
+                <property name="snapshot"><![CDATA[true]]></property>
+                <property name="fsname"><![CDATA[readModels.out]]></property>
+                <property name="fstype"><![CDATA[csv]]></property>
+              </properties>
+            </connector>
+          </connectors>
+        </window-model-reader>
+        <window-source pubsub="true" name="w_loadModels">
+          <schema>
+            <fields>
+              <field name="req_id" type="int64" key="true"/>
+              <field name="req_key" type="string"/>
+              <field name="req_value" type="string"/>
+            </fields>
+          </schema>
+          <connectors>
+            <connector class="fs" name="read_loadModelsConnector">
+              <properties>
+                <property name="type"><![CDATA[pub]]></property>
+                <property name="fsname"><![CDATA[models/modelRequest2.csv]]></property>
+                <property name="fstype"><![CDATA[csv]]></property>
+              </properties>
+            </connector>
+          </connectors>
+        </window-source>
+        <window-aggregate pubsub="true" name="ScoreOutput">
+          <schema>
+            <fields>
+              <field name="P__label_Animal" type="double"/>
+              <field name="P__label_CallCentre" type="double"/>
+              <field name="P__label_EdgeDevice" type="double"/>
+              <field name="P__label_Forms" type="double"/>
+              <field name="P__label_Muse" type="double"/>
+              <field name="P__label_SciSports" type="double"/>
+              <field name="I__label_" type="string"/>
+              <field name="_WARN_" type="string"/>
+              <field name="id" type="string" key="true"/>
+            </fields>
+          </schema>
+          <output>
+            <field-expr><![CDATA[ESP_aLast(P__label_Animal)]]></field-expr>
+            <field-expr><![CDATA[ESP_aLast(P__label_CallCentre)]]></field-expr>
+            <field-expr><![CDATA[ESP_aLast(P__label_EdgeDevice)]]></field-expr>
+            <field-expr><![CDATA[ESP_aLast(P__label_Forms)]]></field-expr>
+            <field-expr><![CDATA[ESP_aLast(P__label_Muse)]]></field-expr>
+            <field-expr><![CDATA[ESP_aLast(P__label_SciSports)]]></field-expr>
+            <field-expr><![CDATA[ESP_aLast(I__label_)]]></field-expr>
+            <field-expr><![CDATA[ESP_aLast(_WARN_)]]></field-expr>
+          </output>
+        </window-aggregate>
+        <window-source pubsub="true" name="w_loadURLMappings">
+          <schema>
+            <fields>
+              <field name="name" type="string" key="true"/>
+              <field name="value" type="string"/>
+            </fields>
+          </schema>
+          <connectors>
+            <connector class="fs" name="read_loadModelsConnector">
+              <properties>
+                <property name="type"><![CDATA[pub]]></property>
+                <property name="fsname"><![CDATA[data/urlmapping.csv]]></property>
+                <property name="fstype"><![CDATA[csv]]></property>
+              </properties>
+            </connector>
+          </connectors>
+        </window-source>
+        <window-join pubsub="true" name="inferenceEndpoint">
+          <join type="leftouter">
+            <conditions>
+              <fields left="I__label_" right="name"/>
+            </conditions>
+          </join>
+          <output>
+            <field-expr name="P__label_Animal" type="double"><![CDATA[l_P__label_Animal]]></field-expr>
+            <field-expr name="P__label_CallCentre" type="double"><![CDATA[l_P__label_CallCentre]]></field-expr>
+            <field-expr name="P__label_EdgeDevice" type="double"><![CDATA[l_P__label_EdgeDevice]]></field-expr>
+            <field-expr name="P__label_Forms" type="double"><![CDATA[l_P__label_Forms]]></field-expr>
+            <field-expr name="P__label_Muse" type="double"><![CDATA[l_P__label_Muse]]></field-expr>
+            <field-expr name="P__label_SciSports" type="double"><![CDATA[l_P__label_SciSports]]></field-expr>
+            <field-expr name="I__label_" type="string"><![CDATA[l_I__label_]]></field-expr>
+            <field-expr name="_WARN_" type="string"><![CDATA[l__WARN_]]></field-expr>
+            <field-expr name="name" type="string"><![CDATA[r_name]]></field-expr>
+            <field-expr name="URL" type="string"><![CDATA[r_value]]></field-expr>
+          </output>
+        </window-join>
+      </windows>
+      <edges>
+        <edge source="w_imageData" target="w_calculate" role="data"/>
+        <edge source="w_loadModels" target="w_ReadModels" role="request"/>
+        <edge source="w_ReadModels" target="w_ScoreInputData" role="model"/>
+        <edge source="w_calculate" target="w_ScoreInputData" role="data"/>
+        <edge source="w_ScoreInputData" target="ScoreOutput"/>
+        <edge source="ScoreOutput" target="inferenceEndpoint" role="left"/>
+        <edge source="w_loadURLMappings" target="inferenceEndpoint" role="right"/>
+      </edges>
+    </contquery>
+  </contqueries>
+</project>
